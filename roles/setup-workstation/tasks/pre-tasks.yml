@@ -1,26 +1,29 @@
 - name: Setup Yum repos 
   shell: scp ctrl.example.com:/etc/yum.repos.d/open.repo /etc/yum.repos.d/open.repo
-- name: Clean yum repo cache
-  command: yum clean all
+- name: Setup SSH keys for cloud-user
+  authorized_key:
+     user: cloud-user
+     state: present
+     key: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
 - name: Install EPEL repos 
   yum:
      name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
      state: present 
-- name: disable selinux
-  command: setenforce 0
-- name: install pip
-  command: easy_install "pip==9.0.3"
-- name: Install openstacksdk library
+- name: Install required packages 
+  yum: 
+     name: "{{item}}"
+     state: latest 
+  loop: 
+    - python 
+    - python-pip 
+    - python-devel 
+    - gcc 
+    - ansible 
+    - python-openstackclient
+- name: Install shade library
   pip:
     name: openstacksdk 
     state: latest
-- name: Downgrade python
-  yum:
-   name:
-    - python
-    - python-libs
-   state: present
-   allow_downgrade: yes 
 - name: Create clouds.yaml file
   blockinfile:
     create: yes
@@ -35,8 +38,3 @@
             username: admin
           identity_api_version: '3.0'
           region_name: RegionOne
-- name: Set openstack.pub authorized key from file
-  authorized_key:
-    user: cloud-user
-    state: present
-    key: "{{ lookup('file', '/root/.ssh/openstack.pub') }}"

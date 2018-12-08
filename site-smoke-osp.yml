@@ -8,10 +8,6 @@
     register: openstack_info
     tags:
       - osp.smoke
-  - debug:
-      var: openstack_info
-    
-
   - name: Curl website
     uri:
      url: "http://{{item.public_v4}}"
